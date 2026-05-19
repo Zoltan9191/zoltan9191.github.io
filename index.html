@@ -16,13 +16,14 @@
       padding: 40px 20px;
       background: #f5f5f5;
       color: #222;
+      background: white !important;
     }
-
+    
     .card {
       background: white;
       padding: 32px;
       border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      box-shadow: none !important;
     }
 
     h1, h2 { margin: 0; }
@@ -193,26 +194,24 @@
     
       const element = document.getElementById('cv');
     
-      // FIX: wait for layout reflow
       await new Promise(r => setTimeout(r, 300));
     
       const opt = {
-        margin: [10, 10, 10, 10],
+        margin: 10,
         filename: 'cv.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
-          scale: 2,
+          scale: 1,          
           useCORS: true,
-          scrollY: 0,      //FIX empty top
-          windowWidth: element.scrollWidth
+          scrollY: 0
         },
         jsPDF: {
-          unit: 'pt',
+          unit: 'mm',
           format: 'a4',
           orientation: 'portrait'
         },
         pagebreak: {
-          mode: ['css', 'legacy'] //FIX section cutting
+          mode: ['css', 'legacy']
         }
       };
     
