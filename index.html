@@ -17,62 +17,114 @@
 
     .card {
       background: white;
-      padding: 40px;
+      padding: 32px;
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
 
-    h1, h2 { margin-bottom: 10px; }
+    h1, h2 { margin: 0; }
 
     h2 {
-      margin-top: 30px;
-      border-bottom: 2px solid #eee;
+      margin-top: 28px;
       padding-bottom: 6px;
+      border-bottom: 2px solid #eee;
     }
 
+    /* HEADER */
     .header {
       display: flex;
-      gap: 24px;
+      gap: 18px;
       align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .avatar {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .main-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .name-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
-    .header img {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
+    .name-row h1 {
+      font-size: 24px;
+    }
+
+    .position {
+      font-size: 13px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+    }
+
+    .contact-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .contact-row a,
+    .contact-row span {
+      background: #f3f4f6;
+      padding: 4px 8px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #444;
+    }
+
+    .contact-row a:hover {
+      background: #e5e7eb;
+    }
+
+    /* CONTENT */
+    .item { margin-bottom: 18px; }
+
+    .dates {
+      font-size: 13px;
+      color: #666;
     }
 
     .tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
     }
 
     .tag {
       background: #eef2ff;
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 999px;
-      font-size: 14px;
+      font-size: 13px;
     }
 
-    .item { margin-bottom: 20px; }
-
-    .dates {
-      color: #666;
-      font-size: 14px;
-    }
-
-    a {
-      color: #2563eb;
-      text-decoration: none;
+    ul {
+      padding-left: 18px;
     }
 
     pre {
       white-space: pre-wrap;
-      font-family: inherit;
       margin: 0;
+      font-family: inherit;
+    }
+
+    a {
+      color: #2563eb;
     }
   </style>
 </head>
@@ -104,7 +156,7 @@
         const social = (data.socialMedia || [])
           .filter(s => s.link)
           .map(s => `<a href="${s.link}" target="_blank">${s.socialMedia}</a>`)
-          .join(' | ');
+          .join('');
 
         const work = (data.workExperience || [])
           .filter(w => w.company || w.position)
@@ -138,18 +190,12 @@
           .join('');
 
         const skills = (data.skills || [])
-          .filter(g =>
-            Array.isArray(g.skills) &&
-            g.skills.some(s => s.trim())
-          )
+          .filter(g => Array.isArray(g.skills) && g.skills.some(s => s.trim()))
           .map(g => `
             <div class="item">
               <h3>${g.title}</h3>
               <div class="tags">
-                ${g.skills
-                  .filter(s => s.trim())
-                  .map(s => `<span class="tag">${s.trim()}</span>`)
-                  .join('')}
+                ${g.skills.filter(s => s.trim()).map(s => `<span class="tag">${s}</span>`).join('')}
               </div>
             </div>
           `)
@@ -185,14 +231,20 @@
 
         const html = `
           <div class="header">
-            ${data.profilePicture ? `<img src="${data.profilePicture}" />` : ''}
-            <div>
-              <h1>${data.name}</h1>
-              <p><strong>${data.position}</strong></p>
-              <p>${data.email || ''}</p>
-              <p>${data.contactInformation || ''}</p>
-              <p>${data.address || ''}</p>
-              <p>${social}</p>
+            ${data.profilePicture ? `<img class="avatar" src="${data.profilePicture}">` : ''}
+
+            <div class="main-info">
+              <div class="name-row">
+                <h1>${data.name || ''}</h1>
+                <span class="position">${data.position || ''}</span>
+              </div>
+
+              <div class="contact-row">
+                ${data.email ? `<a href="mailto:${data.email}">Email</a>` : ''}
+                ${data.contactInformation ? `<a href="tel:${data.contactInformation}">Phone</a>` : ''}
+                ${data.address ? `<span>${data.address}</span>` : ''}
+                ${social}
+              </div>
             </div>
           </div>
 
