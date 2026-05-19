@@ -22,9 +22,13 @@ It is designed for **GitHub Pages hosting** and allows you to update your CV wit
 
 # 📁 Project Structure
 /cv-viewer
+
 ├── index.html
+
 ├── cv.json
+
 ├── profile.jpg (optional)
+
 └── README.md
 
 
