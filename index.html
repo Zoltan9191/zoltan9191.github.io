@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CV Viewer</title>
 
+  <!-- PDF lib -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- DOCX lib -->
+  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -44,7 +50,6 @@
       height: 84px;
       border-radius: 50%;
       object-fit: cover;
-      flex-shrink: 0;
     }
 
     .main-info {
@@ -92,6 +97,27 @@
       background: #e5e7eb;
     }
 
+    /* EXPORT BUTTONS */
+    .export-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .export-buttons button {
+      background: #111827;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .export-buttons button:hover {
+      background: #374151;
+    }
+
     /* CONTENT */
     .item { margin-bottom: 18px; }
 
@@ -113,9 +139,7 @@
       font-size: 13px;
     }
 
-    ul {
-      padding-left: 18px;
-    }
+    ul { padding-left: 18px; }
 
     pre {
       white-space: pre-wrap;
@@ -123,9 +147,7 @@
       font-family: inherit;
     }
 
-    a {
-      color: #2563eb;
-    }
+    a { color: #2563eb; }
   </style>
 </head>
 
@@ -146,6 +168,47 @@
       });
     }
 
+    function fixUrl(url) {
+      if (!url) return '';
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      return 'https://' + url;
+    }
+
+    /* PDF EXPORT */
+    function exportPDF() {
+      const element = document.getElementById('cv');
+      html2pdf().from(element).set({
+        margin: 0.3,
+        filename: 'cv.pdf',
+        html2canvas: { scale: 2 }
+      }).save();
+    }
+
+    /* DOCX EXPORT (simple text version) */
+    function exportDOCX() {
+      const { Document, Packer, Paragraph, TextRun } = docx;
+
+      const text = document.getElementById('cv').innerText;
+
+      const doc = new Document({
+        sections: [{
+          children: [
+            new Paragraph({
+              children: [new TextRun(text)]
+            })
+          ]
+        }]
+      });
+
+      Packer.toBlob(doc).then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "cv.docx";
+        a.click();
+      });
+    }
+
     async function loadCV() {
       try {
         const res = await fetch('cv.json');
@@ -155,7 +218,7 @@
 
         const social = (data.socialMedia || [])
           .filter(s => s.link)
-          .map(s => `<a href="${s.link}" target="_blank">${s.socialMedia}</a>`)
+          .map(s => `<a href="${fixUrl(s.link)}" target="_blank">${s.socialMedia}</a>`)
           .join('');
 
         const work = (data.workExperience || [])
@@ -173,11 +236,9 @@
                   : ''
               }
             </div>
-          `)
-          .join('');
+          `).join('');
 
         const education = (data.education || [])
-          .filter(e => e.school || e.degree)
           .map(e => `
             <div class="item">
               <h3>${e.degree}</h3>
@@ -186,8 +247,7 @@
                 ${formatDate(e.startYear)} - ${formatDate(e.endYear)}
               </div>
             </div>
-          `)
-          .join('');
+          `).join('');
 
         const skills = (data.skills || [])
           .filter(g => Array.isArray(g.skills) && g.skills.some(s => s.trim()))
@@ -198,8 +258,7 @@
                 ${g.skills.filter(s => s.trim()).map(s => `<span class="tag">${s}</span>`).join('')}
               </div>
             </div>
-          `)
-          .join('');
+          `).join('');
 
         const projects = (data.projects || [])
           .filter(p => p.name || p.description)
@@ -208,26 +267,21 @@
               <h3>${p.name}</h3>
               <p>${p.description || ''}</p>
             </div>
-          `)
-          .join('');
+          `).join('');
 
         const languages = (data.languages || [])
-          .filter(l => typeof l === 'string' ? l.trim() : l.language)
           .map(l =>
             typeof l === 'string'
               ? `<span class="tag">${l}</span>`
               : `<span class="tag">${l.language}${l.level ? ` (${l.level})` : ''}</span>`
-          )
-          .join('');
+          ).join('');
 
         const certs = (data.certifications || [])
-          .filter(c => typeof c === 'string' ? c.trim() : c.name)
           .map(c =>
             typeof c === 'string'
               ? `<li>${c}</li>`
               : `<li>${c.name}${c.year ? ` (${c.year})` : ''}</li>`
-          )
-          .join('');
+          ).join('');
 
         const html = `
           <div class="header">
@@ -235,8 +289,8 @@
 
             <div class="main-info">
               <div class="name-row">
-                <h1>${data.name || ''}</h1>
-                <span class="position">${data.position || ''}</span>
+                <h1>${data.name}</h1>
+                <span class="position">${data.position}</span>
               </div>
 
               <div class="contact-row">
@@ -244,6 +298,11 @@
                 ${data.contactInformation ? `<a href="tel:${data.contactInformation}">Phone</a>` : ''}
                 ${data.address ? `<span>${data.address}</span>` : ''}
                 ${social}
+              </div>
+
+              <div class="export-buttons">
+                <button onclick="exportPDF()">Download PDF</button>
+                <button onclick="exportDOCX()">Download DOCX</button>
               </div>
             </div>
           </div>
@@ -260,9 +319,8 @@
         document.getElementById('cv').innerHTML = html;
 
       } catch (err) {
-        console.error(err);
         document.getElementById('cv').innerHTML =
-          `<p>Failed to load CV data: ${err.message}</p>`;
+          `Failed to load CV: ${err.message}`;
       }
     }
 
