@@ -40,8 +40,7 @@
         {
             "company": "Oracle",
             "position": "Software engineer",
-            "description": "Responsibilities:\n\n",
-            "keyAchievements": "Development of bundles/SuiteApps using SuiteScript 1.0 / 2.1, JavaScript, AngularJS, TypeScript, Preact\nWorking with team members to create efficiencies.\nHelp developers/engineers\nSolving customer issues\nMentor other teams\nRewriting existing documentation",
+            "description": "Responsibilities:\n Development of bundles/SuiteApps using SuiteScript 1.0 / 2.1, JavaScript, AngularJS, TypeScript, Preact\nWorking with team members to create efficiencies.\nHelp developers/engineers\nSolving customer issues\nMentor other teams\nRewriting existing documentation",
             "startYear": "2022-02-19",
             "endYear": "2026-05-19"
         },
