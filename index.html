@@ -182,22 +182,41 @@
     }
 
     /* PDF EXPORT */
-    function exportPDF() {
+    async function exportPDF() {
       const button = document.querySelector('.pdf-btn');
-
-      // hide button before export
       button.style.display = 'none';
-
+    
       const element = document.getElementById('cv');
-
-      html2pdf().from(element).set({
-        margin: 0.3,
+    
+      // FIX: wait for layout reflow
+      await new Promise(r => setTimeout(r, 300));
+    
+      const opt = {
+        margin: [10, 10, 10, 10],
         filename: 'cv.pdf',
-        html2canvas: { scale: 2 }
-      }).save().then(() => {
-        // restore button after export
-        button.style.display = 'block';
-      });
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          scrollY: 0,      //FIX empty top
+          windowWidth: element.scrollWidth
+        },
+        jsPDF: {
+          unit: 'pt',
+          format: 'a4',
+          orientation: 'portrait'
+        },
+        pagebreak: {
+          mode: ['css', 'legacy'] //FIX section cutting
+        }
+      };
+    
+      await html2pdf()
+        .set(opt)
+        .from(element)
+        .save();
+    
+      button.style.display = 'block';
     }
 
     async function loadCV() {
