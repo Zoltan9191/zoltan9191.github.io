@@ -8,9 +8,6 @@
   <!-- PDF lib -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- DOCX lib -->
-  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
-
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -97,27 +94,6 @@
       background: #e5e7eb;
     }
 
-    /* EXPORT BUTTONS */
-    .export-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    .export-buttons button {
-      background: #111827;
-      color: white;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-
-    .export-buttons button:hover {
-      background: #374151;
-    }
-
     /* CONTENT */
     .item { margin-bottom: 18px; }
 
@@ -148,11 +124,42 @@
     }
 
     a { color: #2563eb; }
+
+    /* FLOATING PDF BUTTON */
+    .pdf-btn {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: #111827;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 13px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      z-index: 999;
+    }
+
+    .pdf-btn:hover {
+      background: #374151;
+    }
+
+    /* HIDE BUTTON IN PDF */
+    @media print {
+      .pdf-btn {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 
 <body>
+
   <div class="card" id="cv">Loading...</div>
+
+  <!-- FLOATING BUTTON -->
+  <button class="pdf-btn" onclick="exportPDF()">Download PDF</button>
 
   <script>
     function section(title, content) {
@@ -176,36 +183,20 @@
 
     /* PDF EXPORT */
     function exportPDF() {
+      const button = document.querySelector('.pdf-btn');
+
+      // hide button before export
+      button.style.display = 'none';
+
       const element = document.getElementById('cv');
+
       html2pdf().from(element).set({
         margin: 0.3,
         filename: 'cv.pdf',
         html2canvas: { scale: 2 }
-      }).save();
-    }
-
-    /* DOCX EXPORT (simple text version) */
-    function exportDOCX() {
-      const { Document, Packer, Paragraph, TextRun } = docx;
-
-      const text = document.getElementById('cv').innerText;
-
-      const doc = new Document({
-        sections: [{
-          children: [
-            new Paragraph({
-              children: [new TextRun(text)]
-            })
-          ]
-        }]
-      });
-
-      Packer.toBlob(doc).then(blob => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "cv.docx";
-        a.click();
+      }).save().then(() => {
+        // restore button after export
+        button.style.display = 'block';
       });
     }
 
@@ -222,7 +213,6 @@
           .join('');
 
         const work = (data.workExperience || [])
-          .filter(w => w.company || w.position)
           .map(job => `
             <div class="item">
               <h3>${job.position} — ${job.company}</h3>
@@ -261,7 +251,6 @@
           `).join('');
 
         const projects = (data.projects || [])
-          .filter(p => p.name || p.description)
           .map(p => `
             <div class="item">
               <h3>${p.name}</h3>
@@ -283,7 +272,7 @@
               : `<li>${c.name}${c.year ? ` (${c.year})` : ''}</li>`
           ).join('');
 
-        const html = `
+        document.getElementById('cv').innerHTML = `
           <div class="header">
             ${data.profilePicture ? `<img class="avatar" src="${data.profilePicture}">` : ''}
 
@@ -299,11 +288,6 @@
                 ${data.address ? `<span>${data.address}</span>` : ''}
                 ${social}
               </div>
-
-              <div class="export-buttons">
-                <button onclick="exportPDF()">Download PDF</button>
-                <button onclick="exportDOCX()">Download DOCX</button>
-              </div>
             </div>
           </div>
 
@@ -316,8 +300,6 @@
           ${section("Certifications", certs ? `<ul>${certs}</ul>` : '')}
         `;
 
-        document.getElementById('cv').innerHTML = html;
-
       } catch (err) {
         document.getElementById('cv').innerHTML =
           `Failed to load CV: ${err.message}`;
@@ -326,5 +308,6 @@
 
     loadCV();
   </script>
+
 </body>
 </html>
