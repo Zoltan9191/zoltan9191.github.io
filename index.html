@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CV Viewer</title>
 
-  <!-- PDF lib -->
+  <!-- PDF export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -16,17 +16,22 @@
       padding: 40px 20px;
       background: #f5f5f5;
       color: #222;
-      background: white !important;
     }
-    
+
     .card {
       background: white;
       padding: 32px;
       border-radius: 16px;
-      box-shadow: none !important;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
 
-    h1, h2 { margin: 0; }
+    #cv {
+      overflow: visible !important;
+    }
+
+    h1, h2 {
+      margin: 0;
+    }
 
     h2 {
       margin-top: 28px;
@@ -38,7 +43,7 @@
     .header {
       display: flex;
       gap: 18px;
-      align-items: center;
+      align-items: flex-start;
       flex-wrap: wrap;
       margin-bottom: 20px;
     }
@@ -48,6 +53,7 @@
       height: 84px;
       border-radius: 50%;
       object-fit: cover;
+      flex-shrink: 0;
     }
 
     .main-info {
@@ -96,11 +102,15 @@
     }
 
     /* CONTENT */
-    .item { margin-bottom: 18px; }
+    .item {
+      margin-bottom: 18px;
+      page-break-inside: avoid;
+    }
 
     .dates {
       font-size: 13px;
       color: #666;
+      margin-bottom: 8px;
     }
 
     .tags {
@@ -116,15 +126,18 @@
       font-size: 13px;
     }
 
-    ul { padding-left: 18px; }
-
-    pre {
-      white-space: pre-wrap;
-      margin: 0;
-      font-family: inherit;
+    ul {
+      padding-left: 18px;
     }
 
-    a { color: #2563eb; }
+    p {
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+
+    a {
+      color: #2563eb;
+    }
 
     /* FLOATING PDF BUTTON */
     .pdf-btn {
@@ -146,13 +159,16 @@
       background: #374151;
     }
 
-    #cv {
-      position: relative;
-      overflow: visible !important;
-    }
-
-    /* HIDE BUTTON IN PDF */
+    /* PDF mode */
     @media print {
+      body {
+        background: white !important;
+      }
+
+      .card {
+        box-shadow: none !important;
+      }
+
       .pdf-btn {
         display: none !important;
       }
@@ -162,10 +178,13 @@
 
 <body>
 
-  <div class="card" id="cv">Loading...</div>
+  <div class="card" id="cv">
+    Loading...
+  </div>
 
-  <!-- FLOATING BUTTON -->
-  <button class="pdf-btn" onclick="exportPDF()">Download PDF</button>
+  <button class="pdf-btn" onclick="exportPDF()">
+    Download PDF
+  </button>
 
   <script>
     function section(title, content) {
@@ -175,6 +194,7 @@
 
     function formatDate(date) {
       if (!date) return 'Present';
+
       return new Date(date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short'
@@ -183,25 +203,39 @@
 
     function fixUrl(url) {
       if (!url) return '';
-      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+
+      if (
+        url.startsWith('http://') ||
+        url.startsWith('https://')
+      ) {
+        return url;
+      }
+
       return 'https://' + url;
     }
 
-    /* PDF EXPORT */
+    function nl2br(text) {
+      return (text || '').replace(/\n/g, '<br>');
+    }
+
     async function exportPDF() {
       const button = document.querySelector('.pdf-btn');
+
       button.style.display = 'none';
-    
+
       const element = document.getElementById('cv');
-    
+
       await new Promise(r => setTimeout(r, 300));
-    
+
       const opt = {
         margin: 10,
         filename: 'cv.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
+        image: {
+          type: 'jpeg',
+          quality: 0.98
+        },
         html2canvas: {
-          scale: 1,          
+          scale: 1.5,
           useCORS: true,
           scrollY: 0
         },
@@ -214,118 +248,261 @@
           mode: ['css', 'legacy']
         }
       };
-    
+
       await html2pdf()
         .set(opt)
         .from(element)
         .save();
-    
+
       button.style.display = 'block';
     }
 
     async function loadCV() {
       try {
         const res = await fetch('cv.json');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
 
         const data = await res.json();
 
         const social = (data.socialMedia || [])
           .filter(s => s.link)
-          .map(s => `<a href="${fixUrl(s.link)}" target="_blank">${s.socialMedia}</a>`)
+          .map(s => `
+            <a href="${fixUrl(s.link)}" target="_blank">
+              ${s.socialMedia}
+            </a>
+          `)
           .join('');
 
         const work = (data.workExperience || [])
+          .filter(w => w.company || w.position)
           .map(job => `
             <div class="item">
-              <h3>${job.position} — ${job.company}</h3>
+              <h3>${job.position || ''} — ${job.company || ''}</h3>
+
               <div class="dates">
                 ${formatDate(job.startYear)} - ${formatDate(job.endYear)}
               </div>
-              <p>${job.description || ''}</p>
+
               ${
-                Array.isArray(job.keyAchievements) && job.keyAchievements.length
-                  ? `<ul>${job.keyAchievements.map(a => `<li>${a}</li>`).join('')}</ul>`
+                job.description
+                  ? `<p>${nl2br(job.description)}</p>`
+                  : ''
+              }
+
+              ${
+                Array.isArray(job.keyAchievements) &&
+                job.keyAchievements.length
+                  ? `
+                    <ul>
+                      ${job.keyAchievements
+                        .map(a => `<li>${nl2br(a)}</li>`)
+                        .join('')}
+                    </ul>
+                  `
                   : ''
               }
             </div>
-          `).join('');
+          `)
+          .join('');
 
         const education = (data.education || [])
+          .filter(e => e.school || e.degree)
           .map(e => `
             <div class="item">
-              <h3>${e.degree}</h3>
-              <p>${e.school}</p>
+              <h3>${e.degree || ''}</h3>
+
+              <p>${e.school || ''}</p>
+
               <div class="dates">
                 ${formatDate(e.startYear)} - ${formatDate(e.endYear)}
               </div>
             </div>
-          `).join('');
+          `)
+          .join('');
 
         const skills = (data.skills || [])
-          .filter(g => Array.isArray(g.skills) && g.skills.some(s => s.trim()))
-          .map(g => `
+          .filter(group =>
+            Array.isArray(group.skills) &&
+            group.skills.some(skill => skill.trim())
+          )
+          .map(group => `
             <div class="item">
-              <h3>${g.title}</h3>
+              <h3>${group.title}</h3>
+
               <div class="tags">
-                ${g.skills.filter(s => s.trim()).map(s => `<span class="tag">${s}</span>`).join('')}
+                ${group.skills
+                  .filter(skill => skill.trim())
+                  .map(skill => `
+                    <span class="tag">
+                      ${skill.trim()}
+                    </span>
+                  `)
+                  .join('')}
               </div>
             </div>
-          `).join('');
+          `)
+          .join('');
 
         const projects = (data.projects || [])
-          .map(p => `
+          .filter(p => p.name || p.description)
+          .map(project => `
             <div class="item">
-              <h3>${p.name}</h3>
-              <p>${p.description || ''}</p>
+              <h3>${project.name || ''}</h3>
+
+              ${
+                project.description
+                  ? `<p>${nl2br(project.description)}</p>`
+                  : ''
+              }
             </div>
-          `).join('');
+          `)
+          .join('');
 
         const languages = (data.languages || [])
-          .map(l =>
-            typeof l === 'string'
-              ? `<span class="tag">${l}</span>`
-              : `<span class="tag">${l.language}${l.level ? ` (${l.level})` : ''}</span>`
-          ).join('');
+          .filter(lang =>
+            typeof lang === 'string'
+              ? lang.trim()
+              : lang.language
+          )
+          .map(lang =>
+            typeof lang === 'string'
+              ? `<span class="tag">${lang}</span>`
+              : `
+                <span class="tag">
+                  ${lang.language}
+                  ${lang.level ? ` (${lang.level})` : ''}
+                </span>
+              `
+          )
+          .join('');
 
         const certs = (data.certifications || [])
-          .map(c =>
-            typeof c === 'string'
-              ? `<li>${c}</li>`
-              : `<li>${c.name}${c.year ? ` (${c.year})` : ''}</li>`
-          ).join('');
+          .filter(cert =>
+            typeof cert === 'string'
+              ? cert.trim()
+              : cert.name
+          )
+          .map(cert =>
+            typeof cert === 'string'
+              ? `<li>${cert}</li>`
+              : `
+                <li>
+                  ${cert.name}
+                  ${cert.year ? ` (${cert.year})` : ''}
+                </li>
+              `
+          )
+          .join('');
 
         document.getElementById('cv').innerHTML = `
           <div class="header">
-            ${data.profilePicture ? `<img class="avatar" src="${data.profilePicture}">` : ''}
+
+            ${
+              data.profilePicture
+                ? `
+                  <img
+                    class="avatar"
+                    src="${data.profilePicture}"
+                    alt="${data.name}"
+                  >
+                `
+                : ''
+            }
 
             <div class="main-info">
+
               <div class="name-row">
-                <h1>${data.name}</h1>
-                <span class="position">${data.position}</span>
+                <h1>${data.name || ''}</h1>
+
+                ${
+                  data.position
+                    ? `
+                      <span class="position">
+                        ${data.position}
+                      </span>
+                    `
+                    : ''
+                }
               </div>
 
               <div class="contact-row">
-                ${data.email ? `<a href="mailto:${data.email}">Email</a>` : ''}
-                ${data.contactInformation ? `<a href="tel:${data.contactInformation}">Phone</a>` : ''}
-                ${data.address ? `<span>${data.address}</span>` : ''}
+
+                ${
+                  data.email
+                    ? `
+                      <a href="mailto:${data.email}">
+                        Email
+                      </a>
+                    `
+                    : ''
+                }
+
+                ${
+                  data.contactInformation
+                    ? `
+                      <a href="tel:${data.contactInformation}">
+                        Phone
+                      </a>
+                    `
+                    : ''
+                }
+
+                ${
+                  data.address
+                    ? `<span>${data.address}</span>`
+                    : ''
+                }
+
                 ${social}
+
               </div>
             </div>
           </div>
 
-          ${section("Summary", `<pre>${data.summary || ''}</pre>`)}
+          ${
+            section(
+              "Summary",
+              `<p>${nl2br(data.summary || '')}</p>`
+            )
+          }
+
           ${section("Work Experience", work)}
+
           ${section("Education", education)}
+
           ${section("Skills", skills)}
+
           ${section("Projects", projects)}
-          ${section("Languages", languages ? `<div class="tags">${languages}</div>` : '')}
-          ${section("Certifications", certs ? `<ul>${certs}</ul>` : '')}
+
+          ${
+            section(
+              "Languages",
+              languages
+                ? `<div class="tags">${languages}</div>`
+                : ''
+            )
+          }
+
+          ${
+            section(
+              "Certifications",
+              certs
+                ? `<ul>${certs}</ul>`
+                : ''
+            )
+          }
         `;
 
       } catch (err) {
-        document.getElementById('cv').innerHTML =
-          `Failed to load CV: ${err.message}`;
+        console.error(err);
+
+        document.getElementById('cv').innerHTML = `
+          Failed to load CV:
+          ${err.message}
+        `;
       }
     }
 
