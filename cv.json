@@ -39,15 +39,15 @@
     "workExperience": [
         {
             "company": "Oracle",
-            "position": "Software engineer",
-            "description": "Responsibilities:\n Development of bundles/SuiteApps using SuiteScript 1.0 / 2.1, JavaScript, AngularJS, TypeScript, Preact\nWorking with team members to create efficiencies.\nHelp developers/engineers\nSolving customer issues\nMentor other teams\nRewriting existing documentation",
+            "position": "Senior Software engineer",
+            "description": "Responsibilities:\nLed development and maintenance of NetSuite Bundles and SuiteApps using SuiteScript 1.0/2.1, JavaScript, TypeScript, AngularJS, and Preact \n Designed scalable ERP/CRM customizations and internal tooling within the Oracle NetSuite ecosystem\nCollaborated with cross-functional teams to improve engineering workflows, delivery speed, and development efficiency\nSolved complex production and customer issues, including debugging high-impact ERP and business logic problems\nMentored developers across multiple teams, providing technical guidance, code reviews, and architecture recommendations\nModernized legacy solutions by refactoring outdated implementations and improving maintainability and performance\nRewrote and improved technical documentation, simplifying onboarding and long-term project support\nParticipated in architectural decisions and contributed to engineering best practices and coding standards\nWorked in fast-paced enterprise environments with multiple parallel projects and stakeholder requirements",
             "startYear": "2022-02-19",
             "endYear": "2026-05-19"
         },
         {
             "company": "Verenia",
-            "position": "JavaScript engineer",
-            "description": "Responsibilities:\n Work with ERP/CRM systems (Oracle NetSuite and Verenia’s own products)\nDevelopment of Verenia Bundles\nTake projects thoroughly documented and detailed from customer-facing employees\nand turn them into working code.\nHandling many projects in a fast-paced environment.\nWorking with team members to create efficiencies.\nTake legacy projects and reimagine them in an efficient manner.",
+            "position": "Middle JavaScript engineer",
+            "description": "Responsibilities:\n Developed ERP/CRM customizations and integrations for Oracle NetSuite and Verenia products\nBuilt and maintained Verenia Bundles and customer-specific business solutions using JavaScript\nConverted detailed business and functional requirements into scalable production-ready implementations\nManaged multiple projects simultaneously in a fast-paced client-focused environment\nCollaborated closely with technical and customer-facing teams to improve delivery efficiency and product quality\nRedesigned and optimized legacy implementations to improve maintainability and performance\nSupported troubleshooting, debugging, and enhancement of existing enterprise systems",
             "startYear": "2019-08-19",
             "endYear": "2022-02-19"
         },
